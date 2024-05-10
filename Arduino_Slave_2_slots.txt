@@ -1,0 +1,112 @@
+#include <LoRa_E32.h>
+#include <SoftwareSerial.h>
+#define M0 12
+#define M1 13
+///Sonic Sonic 1
+const int trigPin_1 = 9;    
+const int echoPin_1 = 8;
+///Sonic Sonic 2
+const int trigPin_2 = 7;
+const int echoPin_2 = 6;
+///IR Sensor 1 
+const int IR_1 = 4; 
+///IR Sensor 2
+const int IR_2 = 3; 
+//Variable for Sonic 1
+int Duration_1;
+float D_cm_1;   
+//Variable for Sonic 2
+int Duration_2;
+float D_cm_2;   
+//Variable for IR 1
+int obj_1; 
+//Variable for IR 2
+int obj_2;
+String state_1;
+String preState_1; 
+String state_2; 
+String preState_2;
+
+ 
+SoftwareSerial mySerial(10, 11); //TX, RX 
+void setup() {
+  Serial.begin(9600); 
+  mySerial.begin(9600);
+
+  pinMode(M0, OUTPUT); 
+  pinMode(M1, OUTPUT); 
+  digitalWrite(M0, LOW);
+  digitalWrite(M1, LOW);
+///Setup Sonic 1 and IR 1
+  pinMode(trigPin_1, OUTPUT);
+  pinMode(echoPin_1, INPUT);
+  pinMode(IR_1, INPUT_PULLUP);
+///Setup Sonic 2 and IR 2
+  pinMode(trigPin_2, OUTPUT);
+  pinMode(echoPin_2, INPUT);
+}
+
+void loop() {
+  send1();
+  send2();
+  sonic_1();
+  sonic_2();
+  IR1();
+  IR2();
+  delay(1000);
+}
+void send1(){
+  if(D_cm_1 < 50 && obj_1 == 1) state_1 = "11";
+  else state_1 = "10"; 
+  if ( state_1 != preState_1){
+    mySerial.println(state_1); 
+    Serial.println("Slot 1: " + state_1);
+    preState_1 = state_1; 
+  }
+}
+void send2(){
+  if(D_cm_2 < 50 && obj_2 == 1) state_2 = "21";
+  else state_2 = "20"; 
+  if ( state_2 != preState_2){
+    mySerial.println(state_2); 
+    Serial.println("Slot 2: " + state_2);
+    preState_2 = state_2; 
+  }  
+}
+void sonic_2(){
+  //Generate pulse trigger - phat xung tu chan trig, 10ms
+  digitalWrite(trigPin_2, LOW);
+  delayMicroseconds(2);
+  //Generate and send to trigger pin the trigger pulse 
+  digitalWrite(trigPin_2, HIGH); ///start
+  delayMicroseconds(10);
+  digitalWrite(trigPin_2, LOW); //low 
+
+  Duration_2 = pulseIn(echoPin_2, HIGH); 
+
+  D_cm_2 = Duration_2*0.034/2.0; 
+  // Serial.println(D_cm_2);
+}
+void sonic_1(){
+  //Generate pulse trigger - phat xung tu chan trig, 10ms
+  digitalWrite(trigPin_1, LOW);
+  delayMicroseconds(2);
+  //Generate and send to trigger pin the trigger pulse 
+  digitalWrite(trigPin_1, HIGH); ///start
+  delayMicroseconds(10);
+  digitalWrite(trigPin_1, LOW); //low 
+
+  Duration_1 = pulseIn(echoPin_1, HIGH); 
+
+  D_cm_1 = Duration_1*0.034/2.0; 
+  // Serial.println(D_cm_1);
+}
+void IR1(){
+  obj_1 = digitalRead(IR_1);
+  obj_1 = !obj_1 ;
+}
+void IR2(){
+  obj_2 = digitalRead(IR_2);
+  obj_2 = !obj_2 ;
+  // Serial.println(obj_2);
+}
