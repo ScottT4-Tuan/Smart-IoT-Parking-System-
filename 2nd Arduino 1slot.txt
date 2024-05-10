@@ -1,0 +1,65 @@
+#include <LoRa_E32.h>
+#include <SoftwareSerial.h>
+#define M0 12
+#define M1 13
+///Sonic Sonic 3
+const int trigPin_3 = 9;    
+const int echoPin_3 = 8;
+///IR Sensor 3
+const int IR_3 = 4; 
+//Variable for Sonic 3
+int Duration_3;
+float D_cm_3;   
+//Variable for IR3
+int obj_3; 
+String state_3;
+String preState_3; 
+ 
+SoftwareSerial mySerial(10, 11); //TX, RX 
+void setup() {
+  Serial.begin(9600); 
+  mySerial.begin(9600);
+
+  pinMode(M0, OUTPUT); 
+  pinMode(M1, OUTPUT); 
+  digitalWrite(M0, LOW);
+  digitalWrite(M1, LOW);
+///Setup Sonic 1 and IR 1
+  pinMode(trigPin_3, OUTPUT);
+  pinMode(echoPin_3, INPUT);
+  pinMode(IR_3, INPUT_PULLUP);
+}
+
+void loop() {
+  send3();
+  sonic_3();
+  IR3();
+  delay(1000);
+}
+void send3(){
+  if(D_cm_3 < 50 && obj_3 == 1) state_3 = "31";
+  else state_3 = "30"; 
+  if ( state_3 != preState_3){
+    mySerial.println(state_3); 
+    Serial.println("Slot 3: " + state_3);
+    preState_3 = state_3; 
+  }
+}
+void sonic_3(){
+  //Generate pulse trigger - phat xung tu chan trig, 10ms
+  digitalWrite(trigPin_3, LOW);
+  delayMicroseconds(2);
+  //Generate and send to trigger pin the trigger pulse 
+  digitalWrite(trigPin_3, HIGH); ///start
+  delayMicroseconds(10);
+  digitalWrite(trigPin_3, LOW); //low 
+
+  Duration_3 = pulseIn(echoPin_3, HIGH); 
+
+  D_cm_3 = Duration_3*0.034/2.0; 
+  // Serial.println(D_cm_3);
+}
+void IR3(){
+  obj_3 = digitalRead(IR_3);
+  obj_3 = !obj_3 ;
+}
